@@ -1,9 +1,6 @@
 import torch
 from torchvision import datasets, transforms, models
 from torch import nn, optim
-import torch.nn.functional as F
-import numpy as np
-import time
 import argparse
 import json
 
@@ -82,7 +79,6 @@ class train_model():
             nn.Linear(self.hidden_units, 102),
             nn.LogSoftmax(dim = 1)
             )
-                # Only train the classifier parameters, feature parameters are frozen
         
         return resnet_model
     
@@ -156,25 +152,7 @@ class train_model():
             else:
                 param.requires_grad = False
 
-        # Define our new classifier
-#         self.classifier = nn.Sequential( nn.Linear(25088, 512),
-#                                     nn.ReLU(),
-#                                     nn.Dropout(p=0.2),
-#                                     nn.Linear(512, 256),
-#                                     nn.ReLU(),
-#                                     nn.Dropout(p=0.2),
-#                                     nn.Linear(256, 102),
-#                                     nn.LogSoftmax(dim = 1)
-#                                     )
-
-
-        # replace current models classifier with this one
-        # self.model.classifier = self.classifier
-
         self.criterion = nn.NLLLoss()
-
-        # # Only train the classifier parameters, feature parameters are frozen
-        # self.optimizer = optim.Adam(self.model.classifier.parameters(), self.learning_rate)
 
         self.model.to(self.device);
         

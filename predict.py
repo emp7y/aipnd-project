@@ -1,5 +1,5 @@
 import torch
-from torchvision import datasets, transforms, models
+from torchvision import models
 from torch import nn, optim
 import torch.nn.functional as F
 import numpy as np
@@ -76,9 +76,7 @@ class predict():
             optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             model.class_to_idx = checkpoint['class_to_idx']
-            model.state_dict(checkpoint['state_dict'])    
-
-
+            model.state_dict(checkpoint['state_dict'])
         
         return model
     
@@ -125,7 +123,10 @@ class predict():
         # create an empty array to store the class labels in
         classes = []
         
-        idx_to_class = {image_model.class_to_idx[k]: k for k in image_model.class_to_idx}
+        idx_to_class = {}
+        for image_class in image_model.class_to_idx:
+            value = image_model.class_to_idx[image_class]
+            idx_to_class[value] = image_class
         
         # loop though predictions and populate classes
         for label in topk_classes.cpu().numpy()[0]:
