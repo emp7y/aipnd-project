@@ -1,3 +1,13 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#                                                                          
+# PROGRAMMER: Rogan Basnett
+# DATE CREATED: 2023-03-14                                 
+# REVISED DATE: 2023-03-16
+# PURPOSE: Trains a model based to classify flowers based off of one of 4 Pytorch models 
+#           Alexnet, ResNet50, VGG13, VGG16
+#
+
 import torch
 from torchvision import datasets, transforms, models
 from torch import nn, optim

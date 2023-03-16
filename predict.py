@@ -1,3 +1,12 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+#                                                                          
+# PROGRAMMER: Rogan Basnett
+# DATE CREATED: 2023-03-14                                 
+# REVISED DATE: 2023-03-16
+# PURPOSE: Classifies an image of a flower using one of 4 Pytorch models as a base
+#          Alexnet, ResNet50, VGG13, VGG16
+#
 import torch
 from torchvision import models
 from torch import nn, optim
