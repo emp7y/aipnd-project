@@ -13,15 +13,16 @@ from torchvision import datasets, transforms, models
 from torch import nn, optim
 import argparse
 import json
+import sys
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--data_dir", help="data directory", type=str, default="flowers")
+parser.add_argument("data_dir", help="data directory", type=str, default="flowers")
 parser.add_argument("--save_dir", help="save directory", type=str, default=".")
 parser.add_argument("--arch", help="architecture", type=str, default="vgg16")
 parser.add_argument("--learning_rate", help="learning rate", type=float, default=0.001)
 parser.add_argument("--hidden_units", help="hidden units", type=int, default=512)
 parser.add_argument("--epochs", help="epochs", type=int, default=1)
-parser.add_argument("--gpu", help="use gpu", default=True)
+parser.add_argument("--gpu", help="use gpu", type=str, default="True")
 args = parser.parse_args()
 
 
@@ -42,14 +43,13 @@ class train_model():
         self.device = torch.device("cpu")
 
         if self.gpu == "True" and torch.cuda.is_available():
+            print("Using GPU")
             self.device = torch.device("cuda")
         else:
+            print("Using CPU")
             self.device = torch.device("cpu")
         
     def data_transforms(self):
-        print(self.data_dir)
-        print(self.train_dir)
-        print(self.arch)
         self.train_data_transforms = transforms.Compose([transforms.RandomRotation(30),
                                             transforms.RandomResizedCrop(224),
                                             transforms.RandomHorizontalFlip(),
@@ -75,12 +75,8 @@ class train_model():
 
         self.train_dataloaders = torch.utils.data.DataLoader(self.train_image_datasets, batch_size=64, shuffle=True)
         self.test_dataloaders = torch.utils.data.DataLoader(self.test_image_datasets, batch_size=64, shuffle=True)
-        self.validation_dataloaders = torch.utils.data.DataLoader(self.validate_image_datasets, batch_size=64, shuffle=True)
-        
-    def label_mapping(self):
-        with open('cat_to_name.json', 'r') as f:
-            cat_to_name = json.load(f)
-    
+        self.validation_dataloaders = torch.utils.data.DataLoader(self.validate_image_datasets, batch_size=64, shuffle=True)     
+   
     def get_reset50_model(self):
         resnet_model = models.resnet50(pretrained=True)
         resnet_model.fc = nn.Sequential( nn.Linear(2048, self.hidden_units),
@@ -104,7 +100,6 @@ class train_model():
                     nn.Linear(self.hidden_units/2, 102),
                     nn.LogSoftmax(dim = 1)
                     )
-        vgg_model.model.classifier = vgg_model.classifier
         return vgg_model
     
     def get_vgg16_model(self):
@@ -133,7 +128,6 @@ class train_model():
                     nn.Linear(int(self.hidden_units/2), 102),
                     nn.LogSoftmax(dim = 1)
                     )
-        alexnet_model.classifier = alexnet_model.classifier
         return alexnet_model
             
     def build_model(self):
@@ -177,7 +171,7 @@ class train_model():
                 # Move input and label tensors to the default device
                 inputs, labels = inputs.to(self.device), labels.to(self.device)
 
-                logps = self.model.forward(inputs)
+                logps = self.model(inputs)
                 loss = self.criterion(logps, labels)
 
                 self.optimizer.zero_grad()
@@ -234,9 +228,13 @@ class train_model():
         self.build_model()
         self.train_model()
         self.save_checkpoint()
-        
-model = train_model()
-model.create_and_train()
+
+def main():
+    model = train_model()
+    model.create_and_train()
+
+if __name__ == '__main__':
+    sys.exit(main())
 
 # python train.py --epochs=2
         

@@ -15,13 +15,14 @@ import argparse
 import json
 from PIL import Image
 from torchvision.transforms import functional as tvf
+import sys
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--image", help="path to image", type=str, default="flowers")
 parser.add_argument("--checkpoint", help="path to checkpoint", type=str, default="checkpoint.pth")
 parser.add_argument("--category_names", help="category names", type=str, default="cat_to_name.json")
 parser.add_argument("--topk", help="top number of items to return", type=int, default=1)
-parser.add_argument("--gpu", help="use gpu", default=True)
+parser.add_argument("--gpu", help="use gpu", type=str, default="True")
 parser.add_argument("--arch", help="architecture", type=str, default="vgg16")
 args = parser.parse_args()
 
@@ -49,7 +50,7 @@ class predict():
         
     def label_mapping(self):
         with open(self.category_names, 'r') as f:
-            return json.load(f)
+            return json.load(f, strict=False)
 
     def load_checkpoint(self):
         print("loading checkpoint path: {}".format(self.checkpoint))
@@ -62,28 +63,28 @@ class predict():
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             model.class_to_idx = checkpoint['class_to_idx']
-            model.state_dict(checkpoint['state_dict'])   
+            model.load_state_dict(checkpoint['state_dict'])   
         elif self.arch == 'vgg13':
             model = models.vgg13(pretrained=True)    
             model.classifier = checkpoint['classifier']
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             model.class_to_idx = checkpoint['class_to_idx']
-            model.state_dict(checkpoint['state_dict'])   
+            model.load_state_dict(checkpoint['state_dict'])   
         elif self.arch == 'alexnet':
             model = models.alexnet(pretrained=True)    
             model.classifier = checkpoint['classifier']
             optimizer = optim.Adam(model.classifier.parameters(), lr=0.001)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             model.class_to_idx = checkpoint['class_to_idx']
-            model.state_dict(checkpoint['state_dict'])               
+            model.load_state_dict(checkpoint['state_dict'])               
         if self.arch == 'resnet50':
             model = models.resnet50(pretrained=True)    
             model.fc = checkpoint['classifier']
             optimizer = optim.Adam(model.fc.parameters(), lr=0.001)
             optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
             model.class_to_idx = checkpoint['class_to_idx']
-            model.state_dict(checkpoint['state_dict'])
+            model.load_state_dict(checkpoint['state_dict'])
         
         return model
     
@@ -145,7 +146,6 @@ class predict():
         probs, classes = self.predict_outcome()
         
         probs = probs.data.cpu().numpy()[0]
-        #class_names = classes.data.cpu().numpy()[0]
         
         labels = []
         
@@ -160,9 +160,13 @@ class predict():
             
     def result(self):
         self.output()
-        
-prediction_model = predict()
-prediction_model.result()
+
+def main():
+    prediction_model = predict()
+    prediction_model.result()
+
+if __name__ == '__main__':
+    sys.exit(main())
 
 # python predict.py --image="flowers/test/1/image_06743.jpg"
         
